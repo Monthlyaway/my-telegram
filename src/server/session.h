@@ -4,7 +4,11 @@
 #include <asio.hpp>
 #include <memory>
 #include <string>
+#include <vector>
+#include <cstdint>
 #include <spdlog/spdlog.h>
+#include <messages.pb.h>
+#include "../protocol/protocol_handler.h"
 
 class Session : public std::enable_shared_from_this<Session> {
 public:
@@ -19,8 +23,11 @@ public:
 private:
     void do_read();
     void do_write();
-    void handle_message(const std::string& message);
-    std::string read_buffer_;
+    void handle_packet(const Packet& packet);
+    void send_packet(const Packet& packet);
+    void process_frame_buffer();
+
+    std::vector<uint8_t> read_buffer_;
     std::string write_buffer_;
-    std::array<char, 1024> data_;
+    std::array<uint8_t, 4096> data_;  // Larger buffer for binary data
 };

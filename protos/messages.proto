@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+// Echo request and response messages
+message EchoRequest {
+    string content = 1;
+}
+
+message EchoResponse {
+    string content = 1;
+}
+
+// Error response message
+message ErrorResponse {
+    uint32 error_code = 1;
+    string message = 2;
+    // =3是第三个字段
+    map<string, string> details = 3;  // Additional error details
+}
+
+// Main packet wrapper
+message Packet {
+    uint32 version = 1;      // Protocol version, current version is 1
+
+    // sequence 的作用主要是 请求-响应的匹配。详细解释如下：
+    // 当客户端发送多个请求给服务端时，每个请求都会带上一个 唯一的 sequence 编号。
+    // 服务端在回应时会把同样的 sequence 放回响应里
+    uint32 sequence = 2;     // Optional sequence number for request-response matching
+    
+    // oneof 意思是 同一时间 payload 只能包含其中的一个字段。
+    // 这里的 = 不是给字段赋值，而是 字段编号（tag）：
+    // protobuf 编码时，字段编号用于标识字段，不同的编号保证反序列化时可以正确解析。
+    // 编号可以任意，只要在同一个消息里不重复即可。
+
+    oneof payload {
+        // System messages (1-99)
+        EchoRequest echo_request = 10;
+        EchoResponse echo_response = 11;
+        
+        // Error response (999)
+        ErrorResponse error = 999;
+    }
+}

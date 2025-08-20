@@ -51,14 +51,13 @@ void Session::do_read()
         {
             if (!ec)
             {
-                std::string message(data_.data(), length);
+                // Append received data to read buffer
+                read_buffer_.insert(read_buffer_.end(), data_.begin(), data_.begin() + length);
 
-                // Remove newline characters
-                message.erase(std::remove(message.begin(), message.end(), '\r'), message.end());
-                message.erase(std::remove(message.begin(), message.end(), '\n'), message.end());
+                spdlog::debug("Received {} bytes, buffer size: {}", length, read_buffer_.size());
 
-                spdlog::info("Received message: '{}'", message);
-                handle_message(message);
+                // Process any complete frames in the buffer
+                process_frame_buffer();
             }
             else
             {
@@ -95,12 +94,84 @@ void Session::do_write()
 }
 
 /**
- * handle Echo message：把message写到write_buffer中->do_write
+ * Process complete frames from read buffer
  */
-void Session::handle_message(const std::string &message)
+void Session::process_frame_buffer()
 {
-    // Echo the message back to client
-    write_buffer_ = "Echo: " + message + "\n";
-    spdlog::info("Echoing back: '{}'", message);
+    while (true)
+    {
+        ProtocolHandler::Frame frame;
+        size_t consumed_bytes;
+
+        if (!ProtocolHandler::parse_frame(read_buffer_, frame, consumed_bytes))
+        {
+            // No complete frame available
+            break;
+        }
+
+        // Remove consumed bytes from buffer
+        read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin() + consumed_bytes);
+
+        if (consumed_bytes > 4)
+        { // Valid frame found
+            spdlog::info("Received frame with {} bytes of data", frame.length);
+
+            // Deserialize protobuf packet
+            Packet packet;
+            if (ProtocolHandler::deserialize_frame(frame.data, packet))
+            {
+                handle_packet(packet);
+            }
+            else
+            {
+                spdlog::error("Failed to deserialize packet");
+                // Send error response
+                auto error_packet = ProtocolHandler::create_error_response(1001, "Invalid packet format");
+                send_packet(error_packet);
+            }
+        }
+    }
+
+    // Continue reading
+    do_read();
+}
+
+/**
+ * Handle processed protobuf packet
+ */
+void Session::handle_packet(const Packet &packet)
+{
+    spdlog::info("Processing packet version {}, sequence {}", packet.version(), packet.sequence());
+
+    if (packet.has_echo_request())
+    {
+        const auto &echo_req = packet.echo_request();
+        spdlog::info("Echo request: '{}'", echo_req.content());
+
+        // Create echo response
+        auto response = ProtocolHandler::create_echo_response(echo_req.content(), packet.sequence());
+        send_packet(response);
+    }
+    else
+    {
+        spdlog::warn("Unsupported packet type");
+        auto error_packet = ProtocolHandler::create_error_response(3001, "Unsupported message type", packet.sequence());
+        send_packet(error_packet);
+    }
+}
+
+/**
+ * Send protobuf packet to client
+ */
+void Session::send_packet(const Packet &packet)
+{
+    std::string frame_data = ProtocolHandler::serialize_frame(packet);
+    if (frame_data.empty())
+    {
+        spdlog::error("Failed to serialize packet");
+        return;
+    }
+
+    write_buffer_ = frame_data;
     do_write();
 }
