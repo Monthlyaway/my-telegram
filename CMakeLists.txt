@@ -17,5 +17,29 @@ include_directories(/usr/include/mysql-cppconn)
 # Asio is header-only, typically in /usr/include/asio.hpp
 # nlohmann/json is header-only, typically in /usr/include/nlohmann/json.hpp
 
+# Source files for the main server
+set(SERVER_SOURCES
+    src/main.cpp
+    src/config/config.cpp
+    src/server/server.cpp
+    src/server/session.cpp
+)
+
+# Main server executable
+add_executable(im_server ${SERVER_SOURCES})
+
+# Include directories
+target_include_directories(im_server PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+# Link required libraries
+target_link_libraries(im_server 
+    spdlog::spdlog         # spdlog
+    mysqlcppconn           # MySQL Connector/C++
+    crypt                  # bcrypt/password hashing
+    Threads::Threads       # threading support
+)
+
 # Add tests subdirectory
 add_subdirectory(tests)
