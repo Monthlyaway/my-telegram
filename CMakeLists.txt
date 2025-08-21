@@ -44,6 +44,10 @@ set(SERVER_SOURCES
     src/protocol/protocol_handler.cpp
     src/router/message_router.cpp
     src/router/message_handler.cpp
+    src/router/register_handler.cpp
+    src/router/login_handler.cpp
+    src/database/database_manager.cpp
+    src/user/user_manager.cpp
     ${PROTO_SRCS}  # protobuf 生成的源文件
 )
 

@@ -82,13 +82,15 @@ MessageRouter::MessageType MessageRouter::determine_message_type(const Packet &p
         return MessageType::ECHO_REQUEST;
     }
 
-    // 未来可以添加更多消息类型检查
-    // if (packet.has_register_request()) {
-    //     return MessageType::USER_REGISTER;
-    // }
-    // if (packet.has_login_request()) {
-    //     return MessageType::USER_LOGIN;
-    // }
+    if (packet.has_register_request())
+    {
+        return MessageType::USER_REGISTER;
+    }
+
+    if (packet.has_login_request())
+    {
+        return MessageType::USER_LOGIN;
+    }
 
     return MessageType::UNKNOWN;
 }
@@ -114,6 +116,10 @@ std::string MessageRouter::message_type_to_string(MessageType type) const
     {
     case MessageType::ECHO_REQUEST:
         return "ECHO_REQUEST";
+    case MessageType::USER_REGISTER:
+        return "USER_REGISTER";
+    case MessageType::USER_LOGIN:
+        return "USER_LOGIN";
     case MessageType::UNKNOWN:
         return "UNKNOWN";
     default:

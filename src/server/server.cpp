@@ -2,6 +2,10 @@
 #include "session_manager.h"
 #include "../router/message_router.h"
 #include "../router/message_handler.h"
+#include "../router/register_handler.h"
+#include "../router/login_handler.h"
+#include "../database/database_manager.h"
+#include "../user/user_manager.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <algorithm>
@@ -207,6 +211,40 @@ void Server::initialize_message_router()
 
         spdlog::info("Registering EchoHandler with MessageRouter...");
         message_router_->register_handler(MessageRouter::MessageType::ECHO_REQUEST, echo_handler);
+
+        // 初始化数据库连接
+        spdlog::info("Initializing database connection...");
+        if (!DatabaseManager::get_instance().initialize()) {
+            spdlog::error("Failed to initialize database connection");
+            return;
+        }
+        
+        // 初始化用户管理器
+        spdlog::info("Initializing UserManager...");
+        if (!UserManager::get_instance().initialize()) {
+            spdlog::error("Failed to initialize UserManager");
+            return;
+        }
+
+        // 创建并注册用户注册处理器
+        spdlog::info("Creating RegisterHandler instance...");
+        auto register_handler = std::make_shared<RegisterHandler>();
+        if (!register_handler) {
+            spdlog::error("Failed to create RegisterHandler instance");
+            return;
+        }
+        spdlog::info("Registering RegisterHandler with MessageRouter...");
+        message_router_->register_handler(MessageRouter::MessageType::USER_REGISTER, register_handler);
+
+        // 创建并注册用户登录处理器
+        spdlog::info("Creating LoginHandler instance...");
+        auto login_handler = std::make_shared<LoginHandler>();
+        if (!login_handler) {
+            spdlog::error("Failed to create LoginHandler instance");
+            return;
+        }
+        spdlog::info("Registering LoginHandler with MessageRouter...");
+        message_router_->register_handler(MessageRouter::MessageType::USER_LOGIN, login_handler);
 
         spdlog::info("MessageRouter initialized successfully with {} handlers",
                      message_router_->get_handler_count());

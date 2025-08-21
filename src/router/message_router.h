@@ -37,9 +37,9 @@ public:
     enum class MessageType
     {
         ECHO_REQUEST,
+        USER_REGISTER,
+        USER_LOGIN,
         // 未来可以添加更多消息类型
-        // USER_REGISTER,
-        // USER_LOGIN,
         // CHAT_MESSAGE,
         UNKNOWN
     };

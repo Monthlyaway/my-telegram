@@ -203,7 +203,10 @@ bool ProtocolHandler::validate_packet(const Packet &packet)
     }
 
     // Check if packet has valid payload
-    if (!packet.has_echo_request() && !packet.has_echo_response() && !packet.has_error())
+    if (!packet.has_echo_request() && !packet.has_echo_response() &&
+        !packet.has_register_request() && !packet.has_register_response() &&
+        !packet.has_login_request() && !packet.has_login_response() &&
+        !packet.has_error())
     {
         spdlog::warn("Packet has no valid payload");
         return false;
@@ -226,4 +229,12 @@ uint32_t ProtocolHandler::host_to_network(uint32_t value)
 uint32_t ProtocolHandler::network_to_host(uint32_t value)
 {
     return ntohl(value);
+}
+
+Packet ProtocolHandler::create_packet(uint32_t version, uint32_t sequence)
+{
+    Packet packet;
+    packet.set_version(version);
+    packet.set_sequence(sequence);
+    return packet;
 }

@@ -22,6 +22,12 @@ public:
     void start();
     void send_packet(const Packet &packet);
 
+    // User authentication methods
+    void set_authenticated_user(int64_t user_id, const std::string &username);
+    bool is_authenticated() const;
+    int64_t get_user_id() const;
+    const std::string &get_username() const;
+
     // Allow Server to access socket for async_accept
     asio::ip::tcp::socket socket_;
 
@@ -37,4 +43,9 @@ private:
 
     // Message router for handling packets
     std::shared_ptr<MessageRouter> message_router_;
+
+    // User authentication state
+    bool authenticated_ = false;
+    int64_t user_id_ = 0;
+    std::string username_;
 };

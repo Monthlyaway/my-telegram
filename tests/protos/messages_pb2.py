@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x15protos/messages.proto\"\x1e\n\x0b\x45\x63hoRequest\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\t\"\x1f\n\x0c\x45\x63hoResponse\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\t\"\x92\x01\n\rErrorResponse\x12\x12\n\nerror_code\x18\x01 \x01(\r\x12\x0f\n\x07message\x18\x02 \x01(\t\x12,\n\x07\x64\x65tails\x18\x03 \x03(\x0b\x32\x1b.ErrorResponse.DetailsEntry\x1a.\n\x0c\x44\x65tailsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xa6\x01\n\x06Packet\x12\x0f\n\x07version\x18\x01 \x01(\r\x12\x10\n\x08sequence\x18\x02 \x01(\r\x12$\n\x0c\x65\x63ho_request\x18\n \x01(\x0b\x32\x0c.EchoRequestH\x00\x12&\n\recho_response\x18\x0b \x01(\x0b\x32\r.EchoResponseH\x00\x12 \n\x05\x65rror\x18\xe7\x07 \x01(\x0b\x32\x0e.ErrorResponseH\x00\x42\t\n\x07payloadb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x15protos/messages.proto\"\x1e\n\x0b\x45\x63hoRequest\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\t\"\x1f\n\x0c\x45\x63hoResponse\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\t\"5\n\x0fRegisterRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"E\n\x10RegisterResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x0f\n\x07user_id\x18\x03 \x01(\x03\"2\n\x0cLoginRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"T\n\rLoginResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x0f\n\x07user_id\x18\x03 \x01(\x03\x12\x10\n\x08username\x18\x04 \x01(\t\"\x92\x01\n\rErrorResponse\x12\x12\n\nerror_code\x18\x01 \x01(\r\x12\x0f\n\x07message\x18\x02 \x01(\t\x12,\n\x07\x64\x65tails\x18\x03 \x03(\x0b\x32\x1b.ErrorResponse.DetailsEntry\x1a.\n\x0c\x44\x65tailsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xd6\x02\n\x06Packet\x12\x0f\n\x07version\x18\x01 \x01(\r\x12\x10\n\x08sequence\x18\x02 \x01(\r\x12$\n\x0c\x65\x63ho_request\x18\n \x01(\x0b\x32\x0c.EchoRequestH\x00\x12&\n\recho_response\x18\x0b \x01(\x0b\x32\r.EchoResponseH\x00\x12,\n\x10register_request\x18\x64 \x01(\x0b\x32\x10.RegisterRequestH\x00\x12.\n\x11register_response\x18\x65 \x01(\x0b\x32\x11.RegisterResponseH\x00\x12&\n\rlogin_request\x18\x66 \x01(\x0b\x32\r.LoginRequestH\x00\x12(\n\x0elogin_response\x18g \x01(\x0b\x32\x0e.LoginResponseH\x00\x12 \n\x05\x65rror\x18\xe7\x07 \x01(\x0b\x32\x0e.ErrorResponseH\x00\x42\t\n\x07payloadb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'protos.messages_pb2', globals())
@@ -26,10 +26,18 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _ECHOREQUEST._serialized_end=55
   _ECHORESPONSE._serialized_start=57
   _ECHORESPONSE._serialized_end=88
-  _ERRORRESPONSE._serialized_start=91
-  _ERRORRESPONSE._serialized_end=237
-  _ERRORRESPONSE_DETAILSENTRY._serialized_start=191
-  _ERRORRESPONSE_DETAILSENTRY._serialized_end=237
-  _PACKET._serialized_start=240
-  _PACKET._serialized_end=406
+  _REGISTERREQUEST._serialized_start=90
+  _REGISTERREQUEST._serialized_end=143
+  _REGISTERRESPONSE._serialized_start=145
+  _REGISTERRESPONSE._serialized_end=214
+  _LOGINREQUEST._serialized_start=216
+  _LOGINREQUEST._serialized_end=266
+  _LOGINRESPONSE._serialized_start=268
+  _LOGINRESPONSE._serialized_end=352
+  _ERRORRESPONSE._serialized_start=355
+  _ERRORRESPONSE._serialized_end=501
+  _ERRORRESPONSE_DETAILSENTRY._serialized_start=455
+  _ERRORRESPONSE_DETAILSENTRY._serialized_end=501
+  _PACKET._serialized_start=504
+  _PACKET._serialized_end=846
 # @@protoc_insertion_point(module_scope)

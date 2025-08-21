@@ -9,6 +9,31 @@ message EchoResponse {
     string content = 1;
 }
 
+// User registration messages
+message RegisterRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message RegisterResponse {
+    bool success = 1;
+    string message = 2;
+    int64 user_id = 3;  // Only set if success is true
+}
+
+// User login messages
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    bool success = 1;
+    string message = 2;
+    int64 user_id = 3;      // Only set if success is true
+    string username = 4;    // Only set if success is true
+}
+
 // Error response message
 message ErrorResponse {
     uint32 error_code = 1;
@@ -35,6 +60,12 @@ message Packet {
         // System messages (1-99)
         EchoRequest echo_request = 10;
         EchoResponse echo_response = 11;
+        
+        // User system messages (100-199)
+        RegisterRequest register_request = 100;
+        RegisterResponse register_response = 101;
+        LoginRequest login_request = 102;
+        LoginResponse login_response = 103;
         
         // Error response (999)
         ErrorResponse error = 999;

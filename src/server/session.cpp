@@ -210,3 +210,26 @@ void Session::send_packet(const Packet &packet)
     write_buffer_ = frame_data;
     do_write();
 }
+
+void Session::set_authenticated_user(int64_t user_id, const std::string &username)
+{
+    authenticated_ = true;
+    user_id_ = user_id;
+    username_ = username;
+    spdlog::info("Session authenticated for user: {} (ID: {})", username, user_id);
+}
+
+bool Session::is_authenticated() const
+{
+    return authenticated_;
+}
+
+int64_t Session::get_user_id() const
+{
+    return user_id_;
+}
+
+const std::string &Session::get_username() const
+{
+    return username_;
+}

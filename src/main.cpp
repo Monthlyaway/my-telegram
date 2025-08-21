@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <signal.h>
+#include <atomic>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
@@ -11,6 +12,7 @@
 #include "server/server.h"
 
 std::unique_ptr<Server> g_server;
+std::atomic<bool> g_running{true};
 
 void signal_handler(int signal)
 {
@@ -19,6 +21,7 @@ void signal_handler(int signal)
     {
         g_server->stop();
     }
+    g_running = false;
 }
 
 void setup_logging(const Config::LoggingConfig &logging_config)
@@ -111,9 +114,9 @@ int main(int argc, char *argv[])
         spdlog::info("Server started successfully. Press Ctrl+C to stop.");
 
         // Keep main thread running
-        while (true)
+        while (g_running)
         {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
     catch (const std::exception &e)

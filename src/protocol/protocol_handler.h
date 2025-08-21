@@ -33,6 +33,9 @@ public:
     // Create echo response packet
     static Packet create_echo_response(const std::string &content, uint32_t sequence = 0);
 
+    // Create basic packet with version and sequence
+    static Packet create_packet(uint32_t version = PROTOCOL_VERSION, uint32_t sequence = 0);
+
     // Validate packet (version check, etc.)
     static bool validate_packet(const Packet &packet);
 

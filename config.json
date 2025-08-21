@@ -6,7 +6,7 @@
     "worker_threads": 4
   },
   "logging": {
-    "level": "info",
+    "level": "debug",
     "file": "logs/im_server.log",
     "max_size_mb": 100,
     "max_files": 5
