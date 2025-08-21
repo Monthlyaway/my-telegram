@@ -1,4 +1,7 @@
 #include "server.h"
+#include "session_manager.h"
+#include "../router/message_router.h"
+#include "../router/message_handler.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <algorithm>
@@ -10,8 +13,20 @@
  * 初始化running flag为false
  */
 Server::Server(const Config &config)
-    : config_(config), io_context_(), acceptor_(io_context_), running_(false)
+    : config_(config), io_context_(), acceptor_(io_context_), running_(false), message_router_(nullptr)
 {
+    spdlog::info("=== Server Constructor ===");
+    spdlog::info("Calling initialize_message_router()...");
+    initialize_message_router();
+
+    if (message_router_)
+    {
+        spdlog::info("Server constructor completed successfully with MessageRouter");
+    }
+    else
+    {
+        spdlog::error("Server constructor completed but MessageRouter is null!");
+    }
 }
 
 /**
@@ -101,7 +116,7 @@ void Server::stop()
 void Server::do_accept()
 {
     auto new_session = std::make_shared<Session>(
-        asio::ip::tcp::socket(io_context_));
+        asio::ip::tcp::socket(io_context_), message_router_);
 
     acceptor_.async_accept(
         new_session->socket_,
@@ -149,5 +164,57 @@ void Server::run_worker_threads()
     for (auto &thread : worker_threads_)
     {
         thread.join();
+    }
+}
+
+/**
+ * @brief 初始化Server的message router
+ * 
+ * 构造函数中先设为nullptr
+ * 
+ * 流程：make shared MessageRouter -> 注册默认的Handler
+ * 
+ * 如果失败，调用shared_ptr.reset()把message_router_设为nullptr,让这个 shared_ptr 放弃当前所管理的对象。
+ * 
+ */
+void Server::initialize_message_router()
+{
+    spdlog::info("=== Initializing MessageRouter ===");
+
+    try
+    {
+        // 创建消息路由器
+        spdlog::info("Creating MessageRouter instance...");
+        message_router_ = std::make_shared<MessageRouter>();
+
+        if (!message_router_)
+        {
+            spdlog::error("Failed to create MessageRouter instance");
+            return;
+        }
+        spdlog::info("MessageRouter instance created successfully");
+
+        // 注册默认处理器
+        spdlog::info("Creating EchoHandler instance...");
+        auto echo_handler = std::make_shared<EchoHandler>();
+
+        if (!echo_handler)
+        {
+            spdlog::error("Failed to create EchoHandler instance");
+            return;
+        }
+        spdlog::info("EchoHandler instance created successfully");
+
+        spdlog::info("Registering EchoHandler with MessageRouter...");
+        message_router_->register_handler(MessageRouter::MessageType::ECHO_REQUEST, echo_handler);
+
+        spdlog::info("MessageRouter initialized successfully with {} handlers",
+                     message_router_->get_handler_count());
+        spdlog::info("=== MessageRouter initialization complete ===");
+    }
+    catch (const std::exception &e)
+    {
+        spdlog::error("Exception during MessageRouter initialization: {}", e.what());
+        message_router_.reset(); // 确保为null以便错误处理
     }
 }

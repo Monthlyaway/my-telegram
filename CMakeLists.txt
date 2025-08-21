@@ -34,13 +34,16 @@ include_directories(/usr/include/mysql-cppconn)
 # PROTO_SRCS 是生成的 .cpp 文件，PROTO_HDRS 是生成的 .h 文件, pb是protocol buffer的意思
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS protos/messages.proto)
 
-# 定义服务器源码文件列表，包括 main.cpp、配置模块、服务器模块、会话模块、协议处理模块，以及生成的 protobuf 文件
+# 定义服务器源码文件列表，包括 main.cpp、配置模块、服务器模块、会话模块、协议处理模块、路由模块，以及生成的 protobuf 文件
 set(SERVER_SOURCES
     src/main.cpp
     src/config/config.cpp
     src/server/server.cpp
     src/server/session.cpp
+    src/server/session_manager.cpp
     src/protocol/protocol_handler.cpp
+    src/router/message_router.cpp
+    src/router/message_handler.cpp
     ${PROTO_SRCS}  # protobuf 生成的源文件
 )
 

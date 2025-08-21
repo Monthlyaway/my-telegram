@@ -1,4 +1,6 @@
 #include "session.h"
+#include "session_manager.h"
+#include "../router/message_router.h"
 #include <iostream>
 #include <algorithm>
 
@@ -6,15 +8,42 @@
  * Session持有socker并封装连接socket上所有事件的异步读写逻辑（callback函数）
  * 拥有一个socket_对象，封装对单个客户端的异步读写
  */
-Session::Session(asio::ip::tcp::socket socket)
-    : socket_(std::move(socket))
+Session::Session(asio::ip::tcp::socket socket, std::shared_ptr<MessageRouter> router)
+    : socket_(std::move(socket)), message_router_(router)
 {
+    if (!message_router_)
+    {
+        spdlog::error("=== Session created with null MessageRouter ===");
+        spdlog::error("This will cause all message processing to fail!");
+    }
+    else
+    {
+        spdlog::debug("Session created successfully with valid MessageRouter ({} handlers)",
+                      message_router_->get_handler_count());
+    }
 }
 
 Session::~Session()
 {
-    spdlog::info("Session destroyed for client: {}",
-                 socket_.remote_endpoint().address().to_string());
+    try
+    {
+        // 从SessionManager中注销
+        SessionManager::get_instance().unregister_session(shared_from_this());
+
+        if (socket_.is_open())
+        {
+            spdlog::info("Session destroyed for client: {}",
+                         socket_.remote_endpoint().address().to_string());
+        }
+        else
+        {
+            spdlog::info("Session destroyed (socket already closed)");
+        }
+    }
+    catch (const std::exception &e)
+    {
+        spdlog::warn("Exception in Session destructor: {}", e.what());
+    }
 }
 
 /**
@@ -24,11 +53,22 @@ Session::~Session()
  */
 void Session::start()
 {
-    auto remote_endpoint = socket_.remote_endpoint();
-    spdlog::info("New client connected: {}:{}",
-                 remote_endpoint.address().to_string(),
-                 remote_endpoint.port());
-    do_read();
+    try
+    {
+        auto remote_endpoint = socket_.remote_endpoint();
+        spdlog::info("New client connected: {}:{}",
+                     remote_endpoint.address().to_string(),
+                     remote_endpoint.port());
+
+        // 注册到SessionManager
+        SessionManager::get_instance().register_session(shared_from_this());
+
+        do_read();
+    }
+    catch (const std::exception &e)
+    {
+        spdlog::error("Failed to start session: {}", e.what());
+    }
 }
 
 /**
@@ -137,27 +177,22 @@ void Session::process_frame_buffer()
 }
 
 /**
- * Handle processed protobuf packet
+ * Handle processed protobuf packet by delegating to MessageRouter
  */
 void Session::handle_packet(const Packet &packet)
 {
-    spdlog::info("Processing packet version {}, sequence {}", packet.version(), packet.sequence());
+    spdlog::debug("Received packet version {}, sequence {}", packet.version(), packet.sequence());
 
-    if (packet.has_echo_request())
+    if (!message_router_)
     {
-        const auto &echo_req = packet.echo_request();
-        spdlog::info("Echo request: '{}'", echo_req.content());
-
-        // Create echo response
-        auto response = ProtocolHandler::create_echo_response(echo_req.content(), packet.sequence());
-        send_packet(response);
-    }
-    else
-    {
-        spdlog::warn("Unsupported packet type");
-        auto error_packet = ProtocolHandler::create_error_response(3001, "Unsupported message type", packet.sequence());
+        spdlog::error("No MessageRouter available to handle packet");
+        auto error_packet = ProtocolHandler::create_error_response(5001, "Internal server error", packet.sequence());
         send_packet(error_packet);
+        return;
     }
+
+    // 委托给MessageRouter处理
+    message_router_->route_message(packet, shared_from_this());
 }
 
 /**

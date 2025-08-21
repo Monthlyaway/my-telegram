@@ -10,12 +10,17 @@
 #include <messages.pb.h>
 #include "../protocol/protocol_handler.h"
 
-class Session : public std::enable_shared_from_this<Session> {
+// Forward declarations
+class MessageRouter;
+
+class Session : public std::enable_shared_from_this<Session>
+{
 public:
-    Session(asio::ip::tcp::socket socket);
+    Session(asio::ip::tcp::socket socket, std::shared_ptr<MessageRouter> router);
     ~Session();
 
     void start();
+    void send_packet(const Packet &packet);
 
     // Allow Server to access socket for async_accept
     asio::ip::tcp::socket socket_;
@@ -23,11 +28,13 @@ public:
 private:
     void do_read();
     void do_write();
-    void handle_packet(const Packet& packet);
-    void send_packet(const Packet& packet);
+    void handle_packet(const Packet &packet);
     void process_frame_buffer();
 
     std::vector<uint8_t> read_buffer_;
     std::string write_buffer_;
-    std::array<uint8_t, 4096> data_;  // Larger buffer for binary data
+    std::array<uint8_t, 4096> data_; // Larger buffer for binary data
+
+    // Message router for handling packets
+    std::shared_ptr<MessageRouter> message_router_;
 };
